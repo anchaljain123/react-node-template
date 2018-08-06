@@ -9,7 +9,7 @@ import {
 }from '../config/constants'
 
 const initialState ={
-    user : {},
+    user : [],
     loading : true,
     err: '',
     codes: []
@@ -56,13 +56,14 @@ export const userReducers = (state=initialState,action) =>{
         case  SAVE_USER_SUCCESS:{
           return{
               ...state,
-              user: action.data.user,
+              user: action.data,
               loading:false,
             }
         }
         case SAVE_USER_FAILED:{
             return{
-                ...state,err:action.err,
+                ...state,
+                err:action.err,
                 loading:false,
             }
         }

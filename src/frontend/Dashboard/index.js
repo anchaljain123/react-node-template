@@ -12,7 +12,7 @@ class Dashboard extends Component {
 		return (
 			<div>
 				<h2 style={{ marginTop: '120px' }}>
-				Welcome {this.props.user.uname} !!
+				Welcome { user.length ? this.props.user[0].uname: null } !!
 				</h2>
 				<Logout />
 				<Form />

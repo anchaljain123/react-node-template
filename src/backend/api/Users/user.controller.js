@@ -5,6 +5,5 @@ exports.saveUser = (req, res, next) => {
 };
 
 exports.getUser = (req, res, next) => {
-	console.log(">>>=====")
 	userService.getUser(req.body, res);
 };

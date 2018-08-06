@@ -18,7 +18,6 @@ class Signup extends React.Component {
 	};
 	handleSubmit = () => {
 		this.props.saveUser(this.state).then((data) => {
-			console.log(">>>data then", data)
 			this.props.history.push('/dashboard');
 		});
 	};

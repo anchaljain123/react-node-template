@@ -12,18 +12,15 @@ exports.saveUser = (userData, res) => {
 };
 
 exports.getUser = (userData, res) => {
-	// const newUser = new User(userData);
-	// newUser.find(userData, (err, data) => {
-	// 	if (err) {
-	// 		res.send({ error: err });
-	// 	} else {
-	// 		console.log("-data",data)
-	// 		if(data){
-	// 			res.send(data);
-	// 		}else{
-	// 			res.send({ error: 'not found' })
-	// 		}
-	// 	}
-	// });
-	console.log("====================00000")
+	User.find(userData, (err, data) => {
+		if (err) {
+			res.send({ error: err });
+		} else {
+			if(data.length){
+				res.send(data);
+			}else{
+				res.send({ error: 'user not found' })
+			}
+		}
+	});
 };

@@ -16,12 +16,20 @@ export const asyncLoginUser = (payload) => {
 		return fetch(
 			'/getUser',{
 				method:'post',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(payload),
 			  })
 			.then((res) => res.json())
 			.then((data) => {
-				
-				dispatch(asyncCurrentUserSuccess(data));
+				if(data.length){
+					dispatch(asyncCurrentUserSuccess(data));
+					return Promise.resolve(data);
+				}else{
+					dispatch(asyncCurrentUserFailed('User Not Found'));
+				}
 			})
 			.catch((err) => {
 				dispatch(asyncCurrentUserFailed(err));
@@ -42,7 +50,7 @@ export const asyncSaveUser = (payload) => {
 			  })
 			.then((res) => res.json())
 			.then((data) => {
-				dispatch(asyncSaveUserSuccess(data));
+				dispatch(asyncSaveUserSuccess([data.user]));
 			})
 			.catch((err) => {
 				dispatch(asyncSaveUserFailed(err));
