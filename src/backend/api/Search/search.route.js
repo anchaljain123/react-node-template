@@ -23,7 +23,8 @@ router.get('/cb', (req, res) => {
 				const data = result.body;
                 // save accesstoken 
                 // then codes api is hit
-				const accessToken = data.access_token;
+                const accessToken = data.access_token;
+             
 				return request
 					.get(
 						'https://api.github.com/search/code?q=addClass+in:file+language:js+repo:jquery/jquery&page=1&per_page=100'
@@ -31,10 +32,12 @@ router.get('/cb', (req, res) => {
 					.set('Authorization', 'token' + accessToken);
 			})
 			.then((result) => {
-				console.log('>>', result.body.items, '=========items');
-				searchController.saveResult(result.body.items);
+                //return searchController.saveResult(result.body.items, res);  
+            })
+            .then(data => {
+                console.log('>>', data, '=========data');
 				res.redirect('/dashboard');
-			})
+            })
 			.catch((err) => res.send(err));
 	}
 });
