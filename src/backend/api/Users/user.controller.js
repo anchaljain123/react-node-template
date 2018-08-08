@@ -7,3 +7,7 @@ exports.saveUser = (req, res, next) => {
 exports.getUser = (req, res, next) => {
 	userService.getUser(req.body, res);
 };
+
+exports.fetchUser = (req, res, next) => {
+
+};

@@ -14,7 +14,7 @@ export const asyncLoginUser = (payload) => {
 	return (dispatch) => {
 		dispatch(asyncloaderStarted());
 		return fetch(
-			'/getUser',{
+			'/checkUser',{
 				method:'post',
 				headers: {
 					'Accept': 'application/json',
@@ -61,13 +61,17 @@ export const getCodes = () => {
 	return (dispatch) => {
 		dispatch(asyncloaderStarted());
 		return fetch(
-			'https://api.github.com/search/code',{
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-				}
-			  })
-			.then((res) => res.json())
+			'https://github.com/login/oauth/authorize?client_id=361765a35479f026ec53')
+			.then((res) => {
+				console.log(">>>then")
+				res.json();
+				fetch('https://api.github.com/search/code',{
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					}
+				}).then(res =>  console.log("res"))
+			})
 			.then((data) => {
 				dispatch(getCodesSuccess(data));
 			})

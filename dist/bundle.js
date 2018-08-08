@@ -7575,14 +7575,22 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var asyncLoginUser = exports.asyncLoginUser = function asyncLoginUser(payload) {
 	return function (dispatch) {
 		dispatch((0, _user.asyncloaderStarted)());
-		return (0, _isomorphicFetch2.default)('/getUser', {
+		return (0, _isomorphicFetch2.default)('/checkUser', {
 			method: 'post',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
 			body: JSON.stringify(payload)
 		}).then(function (res) {
 			return res.json();
 		}).then(function (data) {
-
-			dispatch((0, _user.asyncCurrentUserSuccess)(data));
+			if (data.length) {
+				dispatch((0, _user.asyncCurrentUserSuccess)(data));
+				return Promise.resolve(data);
+			} else {
+				dispatch((0, _user.asyncCurrentUserFailed)('User Not Found'));
+			}
 		}).catch(function (err) {
 			dispatch((0, _user.asyncCurrentUserFailed)(err));
 		});
@@ -7601,7 +7609,7 @@ var asyncSaveUser = exports.asyncSaveUser = function asyncSaveUser(payload) {
 		}).then(function (res) {
 			return res.json();
 		}).then(function (data) {
-			dispatch((0, _user.asyncSaveUserSuccess)(data));
+			dispatch((0, _user.asyncSaveUserSuccess)([data.user]));
 		}).catch(function (err) {
 			dispatch((0, _user.asyncSaveUserFailed)(err));
 		});
@@ -7610,13 +7618,17 @@ var asyncSaveUser = exports.asyncSaveUser = function asyncSaveUser(payload) {
 var getCodes = exports.getCodes = function getCodes() {
 	return function (dispatch) {
 		dispatch((0, _user.asyncloaderStarted)());
-		return (0, _isomorphicFetch2.default)('https://api.github.com/search/code', {
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json'
-			}
-		}).then(function (res) {
-			return res.json();
+		return (0, _isomorphicFetch2.default)('https://github.com/login/oauth/authorize?client_id=361765a35479f026ec53').then(function (res) {
+			console.log(">>>then");
+			res.json();
+			(0, _isomorphicFetch2.default)('https://api.github.com/search/code', {
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
+			}).then(function (res) {
+				return console.log("res");
+			});
 		}).then(function (data) {
 			dispatch((0, _user.getCodesSuccess)(data));
 		}).catch(function (err) {
@@ -26161,7 +26173,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var _constants = __webpack_require__(106);
 
 var initialState = {
-  user: {},
+  user: [],
   loading: true,
   err: '',
   codes: []
@@ -26210,13 +26222,14 @@ var userReducers = exports.userReducers = function userReducers() {
     case _constants.SAVE_USER_SUCCESS:
       {
         return _extends({}, state, {
-          user: action.data.user,
+          user: action.data,
           loading: false
         });
       }
     case _constants.SAVE_USER_FAILED:
       {
-        return _extends({}, state, { err: action.err,
+        return _extends({}, state, {
+          err: action.err,
           loading: false
         });
       }
@@ -27659,7 +27672,7 @@ exports.default = App;
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -27683,135 +27696,190 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Login = function (_React$Component) {
-    _inherits(Login, _React$Component);
+	_inherits(Login, _React$Component);
 
-    function Login(props) {
-        _classCallCheck(this, Login);
+	function Login(props) {
+		_classCallCheck(this, Login);
 
-        var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
+		var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
 
-        _this.handleChange = function (e) {
-            _this.setState(_defineProperty({}, e.target.name, e.target.value));
-        };
+		_this.handleChange = function (e) {
+			_this.setState(_defineProperty({}, e.target.name, e.target.value));
+		};
 
-        _this.handleSubmit = function () {
-            _this.props.loginUser(_this.state).then(function (data) {
-                if (data) {
-                    _this.props.history.push('/dashboard');
-                }
-            });
-        };
+		_this.handleSubmit = function () {
+			var _this$state = _this.state,
+			    uname = _this$state.uname,
+			    pwd = _this$state.pwd,
+			    email = _this$state.email;
 
-        _this.state = {
-            uname: '',
-            pwd: '',
-            email: ''
-        };
-        return _this;
-    }
+			var payload = {
+				uname: uname,
+				pwd: pwd,
+				email: email
+			};
+			_this.props.loginUser(payload).then(function (data) {
+				if (data.length) {
+					_this.setState({
+						err: false
+					});
+					_this.props.history.push('/dashboard');
+				}
+			}).catch(function (err) {
+				return _this.setState({
+					err: true
+				});
+			});
+		};
 
-    _createClass(Login, [{
-        key: 'render',
-        value: function render() {
-            return _react2.default.createElement(
-                'div',
-                { style: {
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: '90px',
-                        bottom: 0,
-                        width: '290px',
-                        height: '250px',
-                        margin: 'auto',
-                        boxShadow: '0px 0px 6px 1px gray',
-                        padding: '30px'
-                    } },
-                _react2.default.createElement(
-                    'h2',
-                    null,
-                    ' Login Form '
-                ),
-                _react2.default.createElement(
-                    'div',
-                    null,
-                    _react2.default.createElement(
-                        'label',
-                        { style: { display: 'inline-block', width: '70px' } },
-                        'Name:'
-                    ),
-                    _react2.default.createElement('input', { type: 'text', name: 'uname', value: this.state.uname, onChange: this.handleChange, style: {
-                            height: '25px',
-                            width: '60%',
-                            borderRadius: '3px'
-                        } })
-                ),
-                _react2.default.createElement('br', null),
-                _react2.default.createElement(
-                    'div',
-                    null,
-                    _react2.default.createElement(
-                        'label',
-                        { style: { display: 'inline-block', width: '70px' } },
-                        'Email:'
-                    ),
-                    _react2.default.createElement('input', { type: 'email', name: 'email', value: this.state.email, onChange: this.handleChange, style: {
-                            height: '25px',
-                            width: '60%',
-                            borderRadius: '3px'
-                        } })
-                ),
-                _react2.default.createElement('br', null),
-                _react2.default.createElement(
-                    'div',
-                    null,
-                    _react2.default.createElement(
-                        'label',
-                        { style: { display: 'inline-block', width: '72px' } },
-                        'Password:'
-                    ),
-                    _react2.default.createElement('input', { type: 'password', name: 'pwd', value: this.state.pwd, onChange: this.handleChange, style: {
-                            height: '25px',
-                            width: '60%',
-                            borderRadius: '3px'
-                        } })
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { style: { marginTop: '18px', textAlign: 'center' } },
-                    _react2.default.createElement(
-                        'button',
-                        { type: 'submit', name: 'submit', onClick: this.handleSubmit, style: {
-                                width: '120px',
-                                height: '30px'
-                            } },
-                        'Submit'
-                    )
-                ),
-                _react2.default.createElement(
-                    'a',
-                    { href: '/signup' },
-                    'NewUser ? '
-                )
-            );
-        }
-    }]);
+		_this.state = {
+			uname: '',
+			pwd: '',
+			email: '',
+			err: false
+		};
+		return _this;
+	}
 
-    return Login;
+	_createClass(Login, [{
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			this.setState({
+				err: false
+			});
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			return _react2.default.createElement(
+				'div',
+				{
+					style: {
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						right: '90px',
+						bottom: 0,
+						width: '290px',
+						height: '300px',
+						margin: 'auto',
+						boxShadow: '0px 0px 6px 1px gray',
+						padding: '30px'
+					}
+				},
+				this.state.err ? _react2.default.createElement(
+					'h4',
+					null,
+					' No User Found '
+				) : '',
+				_react2.default.createElement(
+					'h2',
+					null,
+					' Login Form '
+				),
+				_react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement(
+						'label',
+						{ style: { display: 'inline-block', width: '70px' } },
+						'Name:'
+					),
+					_react2.default.createElement('input', {
+						type: 'text',
+						name: 'uname',
+						value: this.state.uname,
+						onChange: this.handleChange,
+						style: {
+							height: '25px',
+							width: '60%',
+							borderRadius: '3px'
+						}
+					})
+				),
+				_react2.default.createElement('br', null),
+				_react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement(
+						'label',
+						{ style: { display: 'inline-block', width: '70px' } },
+						'Email:'
+					),
+					_react2.default.createElement('input', {
+						type: 'email',
+						name: 'email',
+						value: this.state.email,
+						onChange: this.handleChange,
+						style: {
+							height: '25px',
+							width: '60%',
+							borderRadius: '3px'
+						}
+					})
+				),
+				_react2.default.createElement('br', null),
+				_react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement(
+						'label',
+						{ style: { display: 'inline-block', width: '72px' } },
+						'Password:'
+					),
+					_react2.default.createElement('input', {
+						type: 'password',
+						name: 'pwd',
+						value: this.state.pwd,
+						onChange: this.handleChange,
+						style: {
+							height: '25px',
+							width: '60%',
+							borderRadius: '3px'
+						}
+					})
+				),
+				_react2.default.createElement(
+					'div',
+					{ style: { marginTop: '18px', textAlign: 'center' } },
+					_react2.default.createElement(
+						'button',
+						{
+							type: 'submit',
+							name: 'submit',
+							onClick: this.handleSubmit,
+							style: {
+								width: '120px',
+								height: '30px'
+							}
+						},
+						'Submit'
+					)
+				),
+				_react2.default.createElement(
+					'a',
+					{ href: '/signup' },
+					'NewUser ? '
+				)
+			);
+		}
+	}]);
+
+	return Login;
 }(_react2.default.Component);
 
-;
-
 var mapStateToProps = function mapStateToProps(state) {
-    return state;
+	return {
+		currentUser: state.userReducers.user
+	};
 };
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
-    return {
-        loginUser: function loginUser(payload) {
-            return dispatch((0, _user.asyncLoginUser)(payload));
-        }
-    };
+	return {
+		loginUser: function loginUser(payload) {
+			return dispatch((0, _user.asyncLoginUser)(payload));
+		}
+	};
 };
 
 exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(Login);
@@ -28984,7 +29052,6 @@ var Signup = function (_React$Component) {
 
 		_this.handleSubmit = function () {
 			_this.props.saveUser(_this.state).then(function (data) {
-				console.log(">>>data then", data);
 				_this.props.history.push('/dashboard');
 			});
 		};
@@ -29170,7 +29237,7 @@ var Dashboard = function (_Component) {
 	_createClass(Dashboard, [{
 		key: 'componentDidMount',
 		value: function componentDidMount() {
-			this.props.getCodes();
+			//this.props.getCodes();
 		}
 	}, {
 		key: 'render',
@@ -29182,11 +29249,18 @@ var Dashboard = function (_Component) {
 					'h2',
 					{ style: { marginTop: '120px' } },
 					'Welcome ',
-					this.props.user.uname,
+					this.props.user.length ? this.props.user[0].uname : null,
 					' !!'
 				),
 				_react2.default.createElement(_Logout2.default, null),
-				_react2.default.createElement(_Form2.default, null)
+				_react2.default.createElement(_Form2.default, null),
+				' ',
+				_react2.default.createElement('br', null),
+				_react2.default.createElement(
+					'a',
+					{ href: 'https://github.com/login/oauth/authorize?client_id=361765a35479f026ec53' },
+					'signin with github'
+				)
 			);
 		}
 	}]);
