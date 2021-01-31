@@ -16,19 +16,19 @@ class Login extends React.Component {
 		this.setState({
 			[e.target.name]: e.target.value,
 		});
-    };
-    componentWillUnmount(){
-        this.setState({
-            err: false,
-        })
-    }
+	};
+	componentWillUnmount() {
+		this.setState({
+			err: false,
+		})
+	}
 	handleSubmit = () => {
-        const { uname, pwd, email } = this.state;
-        const payload = {
-            uname,
+		const { uname, pwd, email } = this.state;
+		const payload = {
+			uname,
 			pwd,
 			email
-        }
+		}
 		this.props
 			.loginUser(payload)
 			.then((data) => {
@@ -39,10 +39,11 @@ class Login extends React.Component {
 					this.props.history.push('/dashboard');
 				}
 			})
-			.catch((err) =>
+			.catch((err) => {
 				this.setState({
 					err: true,
 				})
+			}
 			);
 	};
 	render() {
@@ -127,7 +128,7 @@ class Login extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-    currentUser: state.userReducers.user
+	currentUser: state.userReducers.user
 })
 
 const mapDispatchToProps = (dispatch) => ({

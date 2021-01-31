@@ -9,6 +9,7 @@ class Signup extends React.Component {
 			uname: '',
 			pwd: '',
 			email: '',
+			err: false
 		};
 	}
 	handleChange = (e) => {
@@ -18,9 +19,21 @@ class Signup extends React.Component {
 	};
 	handleSubmit = () => {
 		this.props.saveUser(this.state).then((data) => {
-			this.props.history.push('/dashboard');
-		});
+				this.setState({
+					err: false,
+				});
+				this.props.history.push('/dashboard');
+		}).catch((err) => {
+			this.setState({
+				err: true,
+			});
+		})
 	};
+	componentWillUnmount() {
+		this.setState({
+			err: false,
+		})
+	}
 	render() {
 		return (
 			<div
@@ -37,6 +50,7 @@ class Signup extends React.Component {
 					padding: '30px',
 				}}
 			>
+				{this.state.err ? <h4> No User Found </h4> : ''}
 				<h2> Signup Form </h2>
 				<div>
 					<label style={{ display: 'inline-block', width: '70px' }}>Name:</label>

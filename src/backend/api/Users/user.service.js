@@ -2,13 +2,21 @@ const User = require('./user.model');
 
 exports.saveUser = (userData, res) => {
 	const newUser = new User(userData);
-	newUser.save(userData, (err, data) => {
-		if (err) {
-			res.send({ error: err });
-		} else {
-			res.send({ user: data });
-		}
-	});
+	var query = userData.email; //Extract title from input form
+	// User.findOne({ email: query }, function (err, example) {
+	// 	if (err) console.log(err);
+	// 	if (example) {
+	// 		return res.status(400).send({ error: "This has already been saved" });
+	// 	}
+		newUser.save(userData, (err, data) => {
+			if (err) {
+				res.send({ error: err });
+			} else {
+				res.send({ user: data });
+			}
+		});
+
+	// })
 };
 
 exports.getUser = (userData, res) => {
@@ -16,9 +24,9 @@ exports.getUser = (userData, res) => {
 		if (err) {
 			res.send({ error: err });
 		} else {
-			if(data.length){
+			if (data.length) {
 				res.send(data);
-			}else{
+			} else {
 				res.send({ error: 'user not found' })
 			}
 		}
